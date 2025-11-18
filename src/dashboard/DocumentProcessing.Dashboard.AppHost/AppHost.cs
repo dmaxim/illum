@@ -1,7 +1,12 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add Python FastAPI document processor
-var documentProcessor = builder.AddPythonApp("document-processor", "../../document-processor", "main.py")
+// Note: Using AddExecutable to bypass automatic pip install (dependencies managed via uv)
+var documentProcessor = builder.AddExecutable(
+        "document-processor",
+        Path.GetFullPath("../../document-processor/.venv/bin/python"),
+        "../../document-processor",
+        "main.py")
     .WithHttpEndpoint(port: 8000, env: "PORT")
     .WithExternalHttpEndpoints();
 

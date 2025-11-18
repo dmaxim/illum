@@ -9,13 +9,18 @@ This .NET Aspire solution orchestrates the complete Document Processing platform
 ## Prerequisites
 
 - .NET 10.0 SDK or later
-- Python 3.x with virtual environment
+- Python 3.x with `uv` package manager
 - Node.js and npm
 - .NET Aspire workload installed
 
 To install the .NET Aspire workload:
 ```bash
 dotnet workload install aspire
+```
+
+To trust the .NET development certificates:
+```bash
+dotnet dev-certs https --trust
 ```
 
 ## Project Structure
@@ -64,15 +69,15 @@ The Aspire Dashboard provides:
 
 ### Python App Requirements
 
-The Python FastAPI app requires:
+The Python FastAPI app uses `uv` for dependency management and requires:
 - A `.env` file in `src/document-processor/` (see `.env.example`)
-- Python virtual environment with dependencies installed:
+- Dependencies installed in the virtual environment:
   ```bash
   cd ../document-processor
-  python -m venv .venv
-  source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-  pip install -r requirements.txt
+  uv pip install -r requirements.txt
   ```
+
+**Note**: The Aspire AppHost is configured to use the existing virtual environment at `src/document-processor/.venv`. Make sure dependencies are installed before running the AppHost.
 
 ### Next.js App Setup
 

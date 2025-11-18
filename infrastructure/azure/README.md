@@ -28,10 +28,17 @@ This directory contains Pulumi infrastructure as code for provisioning Azure res
    az login
    ```
 
-3. Login to Pulumi:
+3. Login to Pulumi with Azure Blob Storage backend:
    ```bash
-   pulumi login
+   pulumi login 'azblob://pulumi?storage_account=setransdevopsdevtest'
    ```
+   
+   This configures Pulumi to store state in Azure Blob Storage:
+   - Storage Account: `setransdevopsdevtest`
+   - Container: `pulumi`
+   - Resource Group: `rg-setrans-devops-dev`
+   
+   **Note**: You must have the "Storage Blob Data Contributor" role assigned on the storage account.
 
 ## Deployment
 
@@ -61,12 +68,22 @@ You can customize the deployment using Pulumi configuration:
 
 - `location`: Azure region (default: `eastus`)
 - `environment`: Environment name (default: `dev`)
+- `secret_managers`: List of user email addresses to grant "Key Vault Secrets Officer" role
 
 Example:
 ```bash
 pulumi config set location westus2
 pulumi config set environment prod
+pulumi config set secret_managers '["user1@example.com","user2@example.com"]' --path
 ```
+
+### Key Vault Access
+
+The Key Vault is configured with RBAC authorization. The following roles are automatically assigned:
+- Current user (deploying the infrastructure) receives "Key Vault Secrets Officer" role
+- Users listed in `secret_managers` configuration receive "Key Vault Secrets Officer" role
+
+The "Key Vault Secrets Officer" role allows users to manage secrets in the Key Vault.
 
 ## Outputs
 

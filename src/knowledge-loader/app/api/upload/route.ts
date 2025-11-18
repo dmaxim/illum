@@ -8,11 +8,29 @@ export async function POST(request: NextRequest) {
 
     // Get the form data from the request
     const formData = await request.formData();
+    const file = formData.get('file');
+    const metadataJson = formData.get('metadata') as string | null;
+    
+    // Create new FormData for the document processor
+    const processorFormData = new FormData();
+    if (file) {
+      processorFormData.append('file', file);
+    }
+    
+    // Parse and add metadata if provided
+    if (metadataJson) {
+      try {
+        const metadata = JSON.parse(metadataJson);
+        processorFormData.append('metadata', JSON.stringify(metadata));
+      } catch (e) {
+        console.error('Failed to parse metadata:', e);
+      }
+    }
     
     // Forward the request to the document processor API
     const response = await fetch(uploadEndpoint, {
       method: 'POST',
-      body: formData,
+      body: processorFormData,
     });
 
     // Get the response data

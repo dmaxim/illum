@@ -1,9 +1,10 @@
 import logging
 import os
+import json
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, status
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends, status
 from fastapi.responses import JSONResponse
 from azure.core.exceptions import AzureError
 
@@ -70,12 +71,14 @@ async def health_check():
 @app.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
+    metadata: Optional[str] = Form(None),
     blob_service: BlobStorageService = Depends(get_blob_service)
 ):
     """Upload a document to Azure Blob Storage.
     
     Args:
         file: The file to upload
+        metadata: Optional JSON string containing metadata key-value pairs
         blob_service: Injected blob storage service
         
     Returns:
@@ -120,13 +123,27 @@ async def upload_document(
         from io import BytesIO
         file_data = BytesIO(contents)
         
+        # Prepare metadata
+        upload_metadata = {
+            "file_size": str(file_size)
+        }
+        
+        # Parse and merge custom metadata if provided
+        if metadata:
+            try:
+                custom_metadata = json.loads(metadata)
+                if isinstance(custom_metadata, dict):
+                    # Merge custom metadata with default metadata
+                    upload_metadata.update(custom_metadata)
+                    logger.info(f"Custom metadata added: {custom_metadata}")
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse metadata JSON: {e}")
+        
         upload_result = blob_service.upload_file(
             file_data=file_data,
             filename=file.filename,
             content_type=file.content_type or "application/octet-stream",
-            metadata={
-                "file_size": str(file_size)
-            }
+            metadata=upload_metadata
         )
         
         logger.info(f"File uploaded successfully: {file.filename} -> {upload_result['blob_name']}")

@@ -1,12 +1,13 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+import os
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Azure Blob Storage settings
-    azure_storage_connection_string: str
+    azure_storage_account_name: str
     azure_storage_container_name: str = "documents"
     
     # API settings
@@ -30,4 +31,8 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance."""
-    return Settings()
+    settings = Settings()
+    # Override api_port with PORT environment variable if set (for AppHost compatibility)
+    if "PORT" in os.environ:
+        settings.api_port = int(os.environ["PORT"])
+    return settings

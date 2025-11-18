@@ -6,19 +6,30 @@ import pulumi_azure_native as azure_native
 config = pulumi.Config()
 location = config.get("location") or "eastus"
 environment = config.get("environment") or "dev"
+namespace = "mxinfo-knowledge"
+
+# Resource Names
+resource_group_name = f"rg-{namespace}"
+resource_group_physical_name = f"rg-{namespace}-dev"
+storage_account_name = f"{namespace}-storage"
+storage_account_physical_name = "mxinfoknowledgedev"
+storage_container_name = "mxknowledge-upload-container"
+storage_container_physical_name = "mxknowledgeupload"
+key_vault_name = f"{namespace}-keyvault"
+key_vault_physical_name = "kv-mxinfo-know-dev"
 
 # Resource Group
 resource_group = azure_native.resources.ResourceGroup(
-    "rg-mxinfo-knowledge",
-    resource_group_name="rg-mxinfo-knowledge-dev",
+    resource_group_name,
+    resource_group_name=resource_group_physical_name,
     location=location,
 )
 
 # Storage Account
 storage_account = azure_native.storage.StorageAccount(
-    "mxinfo-knowledge-storage",
+    storage_account_name,
     resource_group_name=resource_group.name,
-    account_name="mxinfoknowledgedev",
+    account_name=storage_account_physical_name,
     location=resource_group.location,
     sku=azure_native.storage.SkuArgs(
         name=azure_native.storage.SkuName.STANDARD_LRS,
@@ -30,10 +41,10 @@ storage_account = azure_native.storage.StorageAccount(
 
 # Storage Container
 storage_container = azure_native.storage.BlobContainer(
-    "mxknowledge-upload-container",
+    storage_container_name,
     resource_group_name=resource_group.name,
     account_name=storage_account.name,
-    container_name="mxknowledgeupload",
+    container_name=storage_container_physical_name,
     public_access=azure_native.storage.PublicAccess.NONE,
 )
 
@@ -42,9 +53,9 @@ storage_container = azure_native.storage.BlobContainer(
 current = azure_native.authorization.get_client_config()
 
 key_vault = azure_native.keyvault.Vault(
-    "mxinfo-knowledge-keyvault",
+    key_vault_name,
     resource_group_name=resource_group.name,
-    vault_name="kv-mxinfo-know-dev",
+    vault_name=key_vault_physical_name,
     location=resource_group.location,
     properties=azure_native.keyvault.VaultPropertiesArgs(
         tenant_id=current.tenant_id,

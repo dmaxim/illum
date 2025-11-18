@@ -14,7 +14,7 @@ var documentProcessor = builder.AddExecutable(
 var knowledgeLoader = builder.AddNpmApp("knowledge-loader", "../../knowledge-loader", "dev")
     .WithHttpEndpoint(port: 3000, env: "PORT")
     .WithReference(documentProcessor)
-    .WithEnvironment("NEXT_PUBLIC_DOCUMENT_PROCESSOR_API_URL", documentProcessor.GetEndpoint("http"))
+    .WithEnvironment("DOCUMENT_PROCESSOR_URL", documentProcessor.GetEndpoint("http"))
     .WithExternalHttpEndpoints();
 
 // Add Blazor dashboard

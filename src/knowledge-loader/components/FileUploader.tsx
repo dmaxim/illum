@@ -56,10 +56,10 @@ export default function FileUploader({ apiUrl }: FileUploaderProps) {
           fileInputRef.current.value = '';
         }
       } else {
-        const error = await response.text();
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
         setUploadStatus({
           type: 'error',
-          message: `Upload failed: ${error || response.statusText}`,
+          message: `Upload failed: ${errorData.error || errorData.detail || response.statusText}`,
         });
       }
     } catch (error) {

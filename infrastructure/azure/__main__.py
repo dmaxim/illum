@@ -70,8 +70,17 @@ key_vault = azure_native.keyvault.Vault(
     ),
 )
 
+# Assign current user as Storage Blob Data Contributor
+current_user_storage_role = azure_native.authorization.RoleAssignment(
+    "current-user-storage-blob-contributor",
+    principal_id=current.object_id,
+    principal_type=azure_native.authorization.PrincipalType.USER,
+    role_definition_id=f"/subscriptions/{current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+    scope=storage_account.id,
+)
+
 # Assign current user as Key Vault Secrets Officer
-current_user_role = azure_native.authorization.RoleAssignment(
+current_user_kv_role = azure_native.authorization.RoleAssignment(
     "current-user-kv-secrets-officer",
     principal_id=current.object_id,
     principal_type=azure_native.authorization.PrincipalType.USER,
@@ -124,7 +133,7 @@ storage_connection_string_secret = azure_native.keyvault.Secret(
     properties=azure_native.keyvault.SecretPropertiesArgs(
         value=connection_string,
     ),
-    opts=pulumi.ResourceOptions(depends_on=[current_user_role]),
+    opts=pulumi.ResourceOptions(depends_on=[current_user_kv_role]),
 )
 
 # Export resource details

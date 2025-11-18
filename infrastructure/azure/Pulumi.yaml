@@ -1,0 +1,3 @@
+name: mxinfo-knowledge-azure
+runtime: python
+description: Azure infrastructure for mxinfo knowledge platform

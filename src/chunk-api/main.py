@@ -62,7 +62,7 @@ def download_from_blob_storage(document_name: str) -> tuple[bytes, int]:
         
         # Get blob client
         blob_client = blob_service_client.get_blob_client(
-            container=config.container_name,
+            container=config.source_container,
             blob=document_name
         )
         
@@ -70,7 +70,7 @@ def download_from_blob_storage(document_name: str) -> tuple[bytes, int]:
         if not blob_client.exists():
             raise HTTPException(
                 status_code=404,
-                detail=f"Document '{document_name}' not found in container '{config.container_name}'"
+                detail=f"Document '{document_name}' not found in container '{config.source_container}'"
             )
         
         # Download blob
@@ -171,5 +171,7 @@ async def chunk_document(request: ChunkRequest):
 
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8001))
+    uvicorn.run(app, host="0.0.0.0", port=port)

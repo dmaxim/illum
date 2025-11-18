@@ -16,6 +16,8 @@ storage_account_name = f"{namespace}-storage"
 storage_account_physical_name = f"vinfoknowledge{environment}"
 storage_container_name = "vknowledge-upload-container"
 storage_container_physical_name = f"vknowledgeupload{environment}"
+storage_container_chunks_name = "vknowledge-chunks-container"
+storage_container_chunks_physical_name = f"vknowledgechunks{environment}"
 key_vault_name = f"{namespace}-keyvault"
 key_vault_physical_name = f"kv-verida-know-{environment}"
 # Resource Group
@@ -45,6 +47,15 @@ storage_container = azure_native.storage.BlobContainer(
     resource_group_name=resource_group.name,
     account_name=storage_account.name,
     container_name=storage_container_physical_name,
+    public_access=azure_native.storage.PublicAccess.NONE,
+)
+
+# Storage Container for Chunks
+storage_container_chunks = azure_native.storage.BlobContainer(
+    storage_container_chunks_name,
+    resource_group_name=resource_group.name,
+    account_name=storage_account.name,
+    container_name=storage_container_chunks_physical_name,
     public_access=azure_native.storage.PublicAccess.NONE,
 )
 
@@ -141,5 +152,6 @@ pulumi.export("resource_group_name", resource_group.name)
 pulumi.export("storage_account_name", storage_account.name)
 pulumi.export("storage_account_id", storage_account.id)
 pulumi.export("storage_container_name", storage_container.name)
+pulumi.export("storage_container_chunks_name", storage_container_chunks.name)
 pulumi.export("key_vault_name", key_vault.name)
 pulumi.export("key_vault_uri", key_vault.properties.vault_uri)

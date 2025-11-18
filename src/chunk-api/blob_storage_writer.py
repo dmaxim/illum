@@ -39,12 +39,12 @@ class BlobStorageWriter:
         
         Args:
             processed_doc: The processed document with pages and chunks
-            output_container: Optional output container name (defaults to 'processed-documents')
+            output_container: Optional output container name (defaults to destination_container from config)
             
         Returns:
             Dictionary with upload statistics and blob URLs
         """
-        container_name = output_container or "processed-documents"
+        container_name = output_container or self.config.destination_container
         
         # Ensure container exists
         container_client = self.blob_service_client.get_container_client(container_name)

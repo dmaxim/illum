@@ -1,7 +1,8 @@
 import FileUploader from '@/components/FileUploader';
 
 export default function Home() {
-  const apiUrl = process.env.NEXT_PUBLIC_DOCUMENT_PROCESSOR_API_URL || 'http://localhost:3001/api/process';
+  // Use the local API route which will forward to the document processor
+  const apiUrl = '/api/upload';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">

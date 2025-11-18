@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import BinaryIO
 from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
 from azure.core.exceptions import AzureError
+from azure.identity import DefaultAzureCredential
 from config import Settings
 
 logger = logging.getLogger(__name__)
@@ -18,8 +19,12 @@ class BlobStorageService:
             settings: Application settings containing Azure connection info
         """
         self.settings = settings
-        self.blob_service_client = BlobServiceClient.from_connection_string(
-            settings.azure_storage_connection_string
+        # Use DefaultAzureCredential for token-based authentication
+        credential = DefaultAzureCredential()
+        account_url = f"https://{settings.azure_storage_account_name}.blob.core.windows.net"
+        self.blob_service_client = BlobServiceClient(
+            account_url=account_url,
+            credential=credential
         )
         self.container_name = settings.azure_storage_container_name
         self._ensure_container_exists()

@@ -13,7 +13,8 @@ A FastAPI-based microservice for uploading documents to Azure Blob Storage. This
 ## Prerequisites
 
 - Python 3.11+
-- Azure Storage Account with connection string
+- Azure Storage Account
+- Azure authentication (Azure CLI, Managed Identity, or Service Principal)
 - Docker (optional, for containerized deployment)
 
 ## Installation
@@ -41,13 +42,20 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `.env` and add your Azure Storage connection string:
+Edit `.env` and add your Azure Storage account name:
 ```
-AZURE_STORAGE_CONNECTION_STRING=your_actual_connection_string
+AZURE_STORAGE_ACCOUNT_NAME=your_storage_account_name
 AZURE_STORAGE_CONTAINER_NAME=documents
 ```
 
-5. Run the application:
+5. Authenticate with Azure:
+```bash
+az login
+```
+
+Ensure you have the "Storage Blob Data Contributor" role on the storage account.
+
+6. Run the application:
 ```bash
 python main.py
 ```
@@ -69,10 +77,12 @@ docker build -t document-processor:latest .
 docker run -d \
   --name document-processor \
   -p 8000:8000 \
-  -e AZURE_STORAGE_CONNECTION_STRING="your_connection_string" \
+  -e AZURE_STORAGE_ACCOUNT_NAME="your_storage_account_name" \
   -e AZURE_STORAGE_CONTAINER_NAME="documents" \
   document-processor:latest
 ```
+
+**Note:** When running in Docker, you'll need to provide Azure credentials through environment variables or use managed identity if running in Azure.
 
 ## API Endpoints
 
@@ -165,13 +175,29 @@ All configuration is managed through environment variables:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `AZURE_STORAGE_CONNECTION_STRING` | Azure Storage connection string | *Required* |
+| `AZURE_STORAGE_ACCOUNT_NAME` | Azure Storage account name | *Required* |
 | `AZURE_STORAGE_CONTAINER_NAME` | Blob container name | `documents` |
 | `API_TITLE` | API title | `Document Processor API` |
 | `API_VERSION` | API version | `1.0.0` |
 | `API_HOST` | API host | `0.0.0.0` |
 | `API_PORT` | API port | `8000` |
 | `MAX_FILE_SIZE_MB` | Maximum file size in MB | `100` |
+
+### Azure Authentication
+
+The application uses `DefaultAzureCredential` which supports multiple authentication methods in order:
+1. Environment variables (Service Principal)
+2. Managed Identity (when running in Azure)
+3. Azure CLI (for local development)
+4. Azure PowerShell
+5. Interactive browser
+
+For local development, ensure you're logged in with Azure CLI:
+```bash
+az login
+```
+
+You must have the "Storage Blob Data Contributor" role assigned on the storage account.
 
 ## Error Handling
 

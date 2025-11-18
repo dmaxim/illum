@@ -6,6 +6,11 @@ interface FileUploaderProps {
   apiUrl: string;
 }
 
+interface MetadataEntry {
+  key: string;
+  value: string;
+}
+
 export default function FileUploader({ apiUrl }: FileUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -13,6 +18,7 @@ export default function FileUploader({ apiUrl }: FileUploaderProps) {
     type: 'success' | 'error' | 'info' | null;
     message: string;
   }>({ type: null, message: '' });
+  const [metadata, setMetadata] = useState<MetadataEntry[]>([{ key: '', value: '' }]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,6 +33,22 @@ export default function FileUploader({ apiUrl }: FileUploaderProps) {
     fileInputRef.current?.click();
   };
 
+  const addMetadataRow = () => {
+    setMetadata([...metadata, { key: '', value: '' }]);
+  };
+
+  const removeMetadataRow = (index: number) => {
+    if (metadata.length > 1) {
+      setMetadata(metadata.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateMetadata = (index: number, field: 'key' | 'value', value: string) => {
+    const updated = [...metadata];
+    updated[index][field] = value;
+    setMetadata(updated);
+  };
+
   const handleUpload = async () => {
     if (!selectedFile) {
       setUploadStatus({ type: 'error', message: 'Please select a file first' });
@@ -39,6 +61,15 @@ export default function FileUploader({ apiUrl }: FileUploaderProps) {
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
+      
+      // Add metadata as JSON string
+      const metadataObj: Record<string, string> = {};
+      metadata
+        .filter(entry => entry.key.trim() !== '')
+        .forEach(entry => {
+          metadataObj[entry.key.trim()] = entry.value;
+        });
+      formData.append('metadata', JSON.stringify(metadataObj));
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -56,10 +87,10 @@ export default function FileUploader({ apiUrl }: FileUploaderProps) {
           fileInputRef.current.value = '';
         }
       } else {
-        const error = await response.text();
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
         setUploadStatus({
           type: 'error',
-          message: `Upload failed: ${error || response.statusText}`,
+          message: `Upload failed: ${errorData.error || errorData.detail || response.statusText}`,
         });
       }
     } catch (error) {
@@ -75,6 +106,7 @@ export default function FileUploader({ apiUrl }: FileUploaderProps) {
   const handleClear = () => {
     setSelectedFile(null);
     setUploadStatus({ type: null, message: '' });
+    setMetadata([{ key: '', value: '' }]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -112,6 +144,51 @@ export default function FileUploader({ apiUrl }: FileUploaderProps) {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Metadata Section */}
+        <div className="border-t border-gray-200 pt-4">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-lg font-semibold text-gray-800">Document Metadata</h3>
+            <button
+              onClick={addMetadataRow}
+              disabled={uploading}
+              className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              + Add Field
+            </button>
+          </div>
+          
+          <div className="space-y-2">
+            {metadata.map((entry, index) => (
+              <div key={index} className="flex space-x-2">
+                <input
+                  type="text"
+                  placeholder="Key"
+                  value={entry.key}
+                  onChange={(e) => updateMetadata(index, 'key', e.target.value)}
+                  disabled={uploading}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                />
+                <input
+                  type="text"
+                  placeholder="Value"
+                  value={entry.value}
+                  onChange={(e) => updateMetadata(index, 'value', e.target.value)}
+                  disabled={uploading}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                />
+                <button
+                  onClick={() => removeMetadataRow(index)}
+                  disabled={uploading || metadata.length === 1}
+                  className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  title="Remove field"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Action Buttons */}

@@ -11,7 +11,8 @@ This pipeline orchestrates the entire document processing workflow:
 import os
 import tempfile
 from typing import TypedDict, Literal, Optional
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph
+from langgraph.constants import END
 
 from models import DocumentMetadata
 from document_models import ProcessedDocument

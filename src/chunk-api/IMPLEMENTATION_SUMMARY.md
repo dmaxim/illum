@@ -41,12 +41,12 @@ Successfully implemented a complete document processing pipeline using **LangCha
 ### Modified Files
 
 1. **`requirements.txt`**
-   - Added LangGraph and LangChain dependencies:
-     - `langgraph==0.2.45`
-     - `langchain==0.3.7`
-     - `langchain-core==0.3.15`
-     - `langchain-community==0.3.5`
-     - `langchain-text-splitters==0.3.2`
+   - Added LangGraph and LangChain dependencies (matching verida-rfp-management project):
+     - `langgraph==1.0.2`
+     - `langchain==1.0.3`
+     - `langchain-core==1.0.3`
+     - `langchain-community==0.4.1`
+     - `langchain-text-splitters==1.0.0`
      - `pypdf==5.1.0`
      - `unstructured==0.16.9`
      - `python-docx==1.1.2`
@@ -272,11 +272,11 @@ curl -X POST http://localhost:8000/chunk \
 ## Dependencies
 
 ### Core Framework
-- `langgraph==0.2.45` - State machine orchestration
-- `langchain==0.3.7` - Document processing framework
-- `langchain-core==0.3.15` - Core abstractions
-- `langchain-community==0.3.5` - Community integrations
-- `langchain-text-splitters==0.3.2` - Text splitting utilities
+- `langgraph==1.0.2` - State machine orchestration
+- `langchain==1.0.3` - Document processing framework
+- `langchain-core==1.0.3` - Core abstractions
+- `langchain-community==0.4.1` - Community integrations
+- `langchain-text-splitters==1.0.0` - Text splitting utilities
 
 ### Document Processing
 - `pypdf==5.1.0` - PDF parsing

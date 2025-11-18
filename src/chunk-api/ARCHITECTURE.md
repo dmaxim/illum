@@ -312,8 +312,8 @@ Blob Storage
 ## Technology Stack
 
 ### Core Framework
-- **LangGraph 0.2.45** - State machine orchestration
-- **LangChain 0.3.7** - Document processing framework
+- **LangGraph 1.0.2** - State machine orchestration
+- **LangChain 1.0.3** - Document processing framework
 - **FastAPI 0.104.1** - REST API framework
 - **Pydantic 2.5.0** - Data validation
 
@@ -321,7 +321,7 @@ Blob Storage
 - **PyPDF 5.1.0** - PDF parsing
 - **Unstructured 0.16.9** - Document structure extraction
 - **python-docx 1.1.2** - Word document processing
-- **langchain-text-splitters 0.3.2** - Text chunking
+- **langchain-text-splitters 1.0.0** - Text chunking
 
 ### Azure Integration
 - **azure-storage-blob 12.19.0** - Blob storage SDK

@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException
 
 from config import AzureBlobStorageConfig
 from models import ChunkRequest, ChunkResponse
+from document_processing_pipeline import DocumentProcessingPipeline
 
 
 app = FastAPI(
@@ -26,6 +27,9 @@ try:
 except ValueError as e:
     print(f"Configuration error: {e}")
     config = None
+
+# Initialize document processing pipeline
+pipeline = DocumentProcessingPipeline()
 
 
 def download_from_blob_storage(document_name: str) -> tuple[bytes, int]:
@@ -106,25 +110,55 @@ async def health_check():
 @app.post("/chunk", response_model=ChunkResponse)
 async def chunk_document(request: ChunkRequest):
     """
-    Download a document from Azure Blob Storage for chunking.
+    Download and process a document from Azure Blob Storage.
+    
+    This endpoint:
+    1. Downloads the document from blob storage
+    2. Runs it through the LangGraph processing pipeline
+    3. Extracts metadata and routes to appropriate processor (PDF or Word)
+    4. Processes document into pages and chunks
+    5. Writes results back to blob storage
     
     Args:
-        request: ChunkRequest containing the document name
+        request: ChunkRequest containing the document name and optional metadata
         
     Returns:
-        ChunkResponse with download information
+        ChunkResponse with processing results
     """
     try:
         # Download document from blob storage
         content, size_bytes = download_from_blob_storage(request.document_name)
         
-        # TODO: Add actual chunking logic here
-        # For now, just return download confirmation
+        # Run document through processing pipeline
+        pipeline_result = pipeline.process(
+            document_name=request.document_name,
+            document_content=content,
+            location=request.location,
+            year=request.year,
+            doc_type=request.doc_type
+        )
+        
+        # Check for pipeline errors
+        if pipeline_result.get("error"):
+            raise HTTPException(
+                status_code=500,
+                detail=f"Pipeline error: {pipeline_result['error']}"
+            )
+        
+        # Extract results
+        processed_doc = pipeline_result["processed_document"]
+        blob_write_result = pipeline_result["blob_write_result"]
+        
+        total_chunks = sum(len(page.chunks) for page in processed_doc.pages)
         
         return ChunkResponse(
             document_name=request.document_name,
+            document_id=processed_doc.document_id,
             size_bytes=size_bytes,
-            message=f"Document '{request.document_name}' downloaded successfully ({size_bytes} bytes)"
+            total_pages=processed_doc.total_pages,
+            total_chunks=total_chunks,
+            message=f"Document '{request.document_name}' processed successfully. "
+                    f"{processed_doc.total_pages} pages, {total_chunks} chunks written to container '{blob_write_result['container']}'"
         )
         
     except HTTPException:

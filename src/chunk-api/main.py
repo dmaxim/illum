@@ -130,12 +130,13 @@ async def chunk_document(request: ChunkRequest):
         ChunkResponse with processing results
     """
     try:
-        # Download document from blob storage
-        content, size_bytes = download_from_blob_storage(request.document_name)
+        # Download document from blob storage using file_name
+        content, size_bytes = download_from_blob_storage(request.file_name)
         
         # Run document through processing pipeline
         pipeline_result = pipeline.process(
             document_name=request.document_name,
+            file_name=request.file_name,
             document_content=content,
             location=request.location,
             year=request.year,

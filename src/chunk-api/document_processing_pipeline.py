@@ -25,6 +25,7 @@ class PipelineState(TypedDict):
     """State for the document processing pipeline."""
     # Input
     document_name: str
+    file_name: str
     document_content: bytes
     location: Optional[str]
     year: Optional[int]
@@ -53,7 +54,7 @@ class DocumentProcessingPipeline:
     
     def _extract_metadata(self, state: PipelineState) -> PipelineState:
         """
-        Extract metadata from document name and determine file type.
+        Extract metadata from file name and determine file type.
         
         Args:
             state: Current pipeline state
@@ -61,10 +62,11 @@ class DocumentProcessingPipeline:
         Returns:
             Updated state with metadata
         """
+        file_name = state["file_name"]
         document_name = state["document_name"]
         
-        # Determine file extension
-        file_extension = os.path.splitext(document_name)[1].lower()
+        # Determine file extension from file_name
+        file_extension = os.path.splitext(file_name)[1].lower()
         
         # Use provided metadata or set defaults
         metadata = DocumentMetadata(
@@ -279,6 +281,7 @@ class DocumentProcessingPipeline:
     def process(
         self,
         document_name: str,
+        file_name: str,
         document_content: bytes,
         location: Optional[str] = None,
         year: Optional[int] = None,
@@ -288,7 +291,8 @@ class DocumentProcessingPipeline:
         Execute the document processing pipeline.
         
         Args:
-            document_name: Name of the document
+            document_name: Name of the document for processing
+            file_name: Name of the file (used for determining file type)
             document_content: Binary content of the document
             location: Optional location metadata
             year: Optional year metadata
@@ -299,6 +303,7 @@ class DocumentProcessingPipeline:
         """
         initial_state: PipelineState = {
             "document_name": document_name,
+            "file_name": file_name,
             "document_content": document_content,
             "location": location,
             "year": year,

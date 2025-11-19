@@ -132,6 +132,7 @@ def ensure_search_index_exists(index_name: str):
         fields = [
             SimpleField(name="id", type=SearchFieldDataType.String, key=True),
             SimpleField(name="document_id", type=SearchFieldDataType.String, filterable=True),
+            SimpleField(name="document_name", type=SearchFieldDataType.String, filterable=True),
             SimpleField(name="create_date", type=SearchFieldDataType.DateTimeOffset, filterable=True, sortable=True),
             SimpleField(name="page_number", type=SearchFieldDataType.Int32, filterable=True, sortable=True),
             SearchableField(name="location", type=SearchFieldDataType.String, filterable=True),
@@ -302,6 +303,7 @@ def upload_chunks_to_search_index(chunks: List[EmbeddedChunkData], group_access_
             document = {
                 "id": chunk.chunk_id,
                 "document_id": chunk.metadata.document_id,
+                "document_name": chunk.metadata.document_name,
                 "create_date": create_date,
                 "page_number": chunk.page_number,
                 "location": chunk.metadata.location,

@@ -218,7 +218,7 @@ class RequestGraphBuilder(GraphBuilder):
         first_chunk = chunks[0]
         location = first_chunk.metadata.location
         year = first_chunk.metadata.year
-        doc_name = first_chunk.metadata.title or document_id
+        doc_name = first_chunk.metadata.document_name or first_chunk.metadata.title or document_id
         doc_type = first_chunk.metadata.doc_type
         
         # Create RFP year identifier
@@ -392,7 +392,7 @@ class ResponseGraphBuilder(GraphBuilder):
         
         # Extract metadata from first chunk
         first_chunk = chunks[0]
-        doc_name = first_chunk.metadata.title or document_id
+        doc_name = first_chunk.metadata.document_name or first_chunk.metadata.title or document_id
         doc_type = first_chunk.metadata.doc_type
         source = first_chunk.metadata.source or f"{doc_name}.docx"
         

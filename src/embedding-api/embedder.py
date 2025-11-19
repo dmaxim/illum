@@ -71,17 +71,14 @@ class DocumentEmbedder:
         Raises:
             RateLimitError: If max retries exceeded
         """
-        logger.info(f"Using embedding endpoint: {self.config.endpoint}")
-        logger.info(f"Using embedding deployment: {self.config.embedding_deployment}")
-        logger.info(f"Using API version: {self.config.api_version}")
         for attempt in range(max_retries):
             try:
-                logger.info(f"Calling Azure OpenAI embeddings API for {len(texts)} texts")
+                logger.debug(f"Calling Azure OpenAI embeddings API for {len(texts)} texts")
                 response = self.client.embeddings.create(
                     input=texts,
                     model=self.config.embedding_deployment,
                 )
-                logger.info(f"Successfully received {len(response.data)} embeddings")
+                logger.debug(f"Successfully received {len(response.data)} embeddings")
                 return [item.embedding for item in response.data]
             except RateLimitError as e:
                 if attempt == max_retries - 1:

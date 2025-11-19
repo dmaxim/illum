@@ -22,6 +22,15 @@ var chunkApi = builder.AddExecutable(
     .WithHttpEndpoint(port: 8001, env: "PORT")
     .WithExternalHttpEndpoints();
 
+// Add Python FastAPI embedding API
+var embeddingApi = builder.AddExecutable(
+        "embedding-api",
+        Path.GetFullPath("../../embedding-api/.venv/bin/python"),
+        "../../embedding-api",
+        "main.py")
+    .WithHttpEndpoint(port: 8002, env: "PORT")
+    .WithExternalHttpEndpoints();
+
 // Add Next.js knowledge loader
 var knowledgeLoader = builder.AddNpmApp("knowledge-loader", "../../knowledge-loader", "dev")
     .WithHttpEndpoint(port: 3000, env: "PORT")

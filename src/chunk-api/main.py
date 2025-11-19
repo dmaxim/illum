@@ -8,12 +8,16 @@ from typing import Optional
 
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
 from config import AzureBlobStorageConfig
 from models import ChunkRequest, ChunkResponse
 from document_processing_pipeline import DocumentProcessingPipeline
 
+# Load environment variables from a local .env file if present
+# This ensures the app picks up configuration when launched by Aspire
+load_dotenv()
 
 app = FastAPI(
     title="Chunk API",

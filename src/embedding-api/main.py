@@ -217,7 +217,7 @@ async def embed_document(request: EmbedDocumentRequest):
                     "metadata": c.metadata.model_dump() if hasattr(c.metadata, "model_dump") else dict(c.metadata),
                     "embedding": emb,
                 }
-                blob_name = f"{request.document_id}/chunk-{c.chunk_index}.json"
+                blob_name = f"{request.document_id}/chunks/chunk-{c.chunk_index}.json"
                 blob_client = blob_service_client.get_blob_client(
                     container=blob_config.embedding_container,
                     blob=blob_name

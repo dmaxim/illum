@@ -95,7 +95,6 @@ class EmbedDocumentResponse(BaseModel):
     year: int = Field(..., description="Year associated with the document")
     location: str = Field(..., description="Location associated with the document")
     doc_type: str = Field(..., description="Document type")
-    chunks: List[ChunkData] = Field(..., description="List of chunk data")
     message: str = Field(..., description="Status message")
     
     class Config:

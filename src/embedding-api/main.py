@@ -244,7 +244,6 @@ async def embed_document(request: EmbedDocumentRequest):
             year=request.year,
             location=request.location,
             doc_type=request.doc_type,
-            chunks=chunks,
             message=f"Embedded {len(chunks)} chunks and wrote to container '{blob_config.embedding_container}'"
         )
         

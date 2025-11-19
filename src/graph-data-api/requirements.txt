@@ -3,6 +3,7 @@ uvicorn[standard]==0.24.0
 azure-storage-blob==12.19.0
 azure-identity==1.15.0
 azure-core==1.29.0
+azure-keyvault-secrets==4.7.0
 pydantic>=2.7.0
 python-dotenv==1.0.0
 neo4j==5.14.1

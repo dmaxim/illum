@@ -9,7 +9,8 @@ from pydantic import BaseModel, Field
 class ChunkRequest(BaseModel):
     """Request model for document chunking."""
     
-    document_name: str = Field(..., description="Name of the document to download from blob storage")
+    document_name: str = Field(..., description="Name of the document for processing")
+    file_name: str = Field(..., description="Name of the file to download from blob storage")
     location: Optional[str] = Field(None, description="Location/state associated with the document")
     year: Optional[int] = Field(None, description="Year of the document")
     doc_type: Optional[str] = Field(None, description="Type of document")

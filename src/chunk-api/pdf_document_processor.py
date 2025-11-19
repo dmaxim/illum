@@ -81,6 +81,7 @@ class PDFDocumentProcessor:
                     "year": year,
                     "doc_type": doc_type,
                     "document_id": document_id,
+                    "document_name": document_name,
                     "chunk_size": self.chunk_size,
                     "chunk_overlap": self.chunk_overlap
                 }]

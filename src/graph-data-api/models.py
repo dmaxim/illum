@@ -59,9 +59,10 @@ class ChunkMetadata(BaseModel):
     year: Optional[int] = None
     doc_type: Optional[str] = None
     document_id: Optional[str] = None
+    document_name: Optional[str] = None
     chunk_size: Optional[int] = None
     chunk_overlap: Optional[int] = None
-    chunk_index: Optional[str] = None
+    chunk_index: Optional[int] = None
     
     class Config:
         extra = "allow"  # Allow additional fields not explicitly defined

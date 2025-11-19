@@ -22,7 +22,7 @@
         "document_id": "9b7b3e33-07da-4fe5-9467-6de3074e26c9",
         "chunk_size": 250,
         "chunk_overlap": 25,
-        "chunk_index": "0"
+        "chunk_index": 0
     },
     "embedding": [
         0.009033359587192535,

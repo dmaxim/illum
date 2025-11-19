@@ -52,7 +52,7 @@ class ChunkMetadata(BaseModel):
     document_id: Optional[str] = None
     chunk_size: Optional[int] = None
     chunk_overlap: Optional[int] = None
-    chunk_index: Optional[str] = None
+    chunk_index: Optional[int] = None
     
     class Config:
         extra = "allow"  # Allow additional fields not explicitly defined
@@ -75,7 +75,6 @@ class ChunkData(BaseModel):
                 "page_number": 1,
                 "content": "NEMT Solicitation Scope of Work Page 1 of 24 Contents...",
                 "metadata": {
-                    "producer": "macOS Version 26.1",
                     "location": "Montana",
                     "year": 2025,
                     "doc_type": "request",

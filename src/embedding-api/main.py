@@ -5,6 +5,7 @@ Provides an endpoint to download chunk files, generate embeddings, and write emb
 
 import json
 import logging
+import sys
 import traceback
 from typing import List
 
@@ -12,6 +13,7 @@ from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient, ContentSettings
 from fastapi import FastAPI, HTTPException
+from pydantic import ValidationError
 
 from config import AzureBlobStorageConfig, AzureOpenAIConfig
 from models import EmbedDocumentRequest, EmbedDocumentResponse, ChunkData
@@ -21,10 +23,14 @@ from embedder import DocumentEmbedder
 # This ensures the app picks up configuration when launched by Aspire
 load_dotenv()
 
-# Configure logging
+# Configure logging with explicit handler to ensure console output
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ],
+    force=True  # Force reconfiguration of root logger
 )
 logger = logging.getLogger(__name__)
 
@@ -92,14 +98,14 @@ def download_chunks_from_blob_storage(document_id: str) -> List[ChunkData]:
         )
         
         # List all blobs in the document's chunks folder
-        blob_prefix = f"{document_id}/chunks/"
-        logger.info(f"Listing blobs with prefix: {blob_prefix}")
+        blob_prefix = f"{document_id}/chunks"
+        logger.info(f"Listing blobs with prefix: {blob_prefix} in container: {blob_config.chunks_container}")
         blobs = container_client.list_blobs(name_starts_with=blob_prefix)
-        
         chunks = []
         for blob in blobs:
+            logger.info(f"Checking blob: {blob.name}")
             if blob.name.endswith('.json'):
-                logger.debug(f"Downloading blob: {blob.name}")
+                logger.info(f"Downloading blob: {blob.name}")
                 # Download the blob
                 blob_client = blob_service_client.get_blob_client(
                     container=blob_config.chunks_container,
@@ -111,7 +117,19 @@ def download_chunks_from_blob_storage(document_id: str) -> List[ChunkData]:
                 
                 # Parse JSON content
                 chunk_data = json.loads(content)
-                chunks.append(ChunkData(**chunk_data))
+                logger.info(f"Parsed chunk data for blob: {blob.name}")
+                
+                # Try to create ChunkData with detailed error handling
+                try:
+                    chunk = ChunkData(**chunk_data)
+                    chunks.append(chunk)
+                except ValidationError as ve:
+                    logger.error(f"Validation error for blob {blob.name}:")
+                    logger.error(f"Raw chunk data: {json.dumps(chunk_data, indent=2)}")
+                    logger.error(f"Validation errors:")
+                    for error in ve.errors():
+                        logger.error(f"  Field: {error['loc']}, Error: {error['msg']}, Input: {error.get('input', 'N/A')}")
+                    raise
         
         if not chunks:
             logger.warning(f"No chunk files found for document_id: {document_id}")
@@ -217,7 +235,7 @@ async def embed_document(request: EmbedDocumentRequest):
                     "metadata": c.metadata.model_dump() if hasattr(c.metadata, "model_dump") else dict(c.metadata),
                     "embedding": emb,
                 }
-                blob_name = f"{request.document_id}/chunk-{c.chunk_index}.json"
+                blob_name = f"{request.document_id}/chunks/chunk-{c.chunk_index}.json"
                 blob_client = blob_service_client.get_blob_client(
                     container=blob_config.embedding_container,
                     blob=blob_name
@@ -262,4 +280,16 @@ if __name__ == "__main__":
     import os
     import uvicorn
     port = int(os.getenv("PORT", 8002))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    
+    # Configure uvicorn with logging that preserves our app's logger
+    log_config = uvicorn.config.LOGGING_CONFIG
+    log_config["formatters"]["default"]["fmt"] = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    log_config["formatters"]["access"]["fmt"] = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        log_config=log_config,
+        log_level="info"
+    )

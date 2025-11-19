@@ -22,6 +22,8 @@ storage_container_embeddings_name = "vembedding-chunks-container"
 storage_container_embeddings_physical_name = f"vembeddingchunks{environment}"
 key_vault_name = f"{namespace}-keyvault"
 key_vault_physical_name = f"kv-verida-know-{environment}"
+ai_search_name = f"ai-{namespace}-{environment}-eus"
+ai_search_physical_name = f"ai-{namespace}-{environment}-eus"
 # Resource Group
 resource_group = azure_native.resources.ResourceGroup(
     resource_group_name,
@@ -92,6 +94,20 @@ key_vault = azure_native.keyvault.Vault(
     ),
 )
 
+# Azure AI Search Service
+ai_search_service = azure_native.search.Service(
+    ai_search_name,
+    resource_group_name=resource_group.name,
+    search_service_name=ai_search_physical_name,
+    location=resource_group.location,
+    sku=azure_native.search.SkuArgs(
+        name="basic",
+    ),
+    replica_count=1,
+    partition_count=1,
+    hosting_mode=azure_native.search.HostingMode.DEFAULT,
+)
+
 # Assign current user as Storage Blob Data Contributor
 current_user_storage_role = azure_native.authorization.RoleAssignment(
     "current-user-storage-blob-contributor",
@@ -108,6 +124,24 @@ current_user_kv_role = azure_native.authorization.RoleAssignment(
     principal_type=azure_native.authorization.PrincipalType.USER,
     role_definition_id=f"/subscriptions/{current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b86a8fe4-44ce-4948-aee5-eccb2c155cd7",
     scope=key_vault.id,
+)
+
+# Assign current user as Search Index Data Contributor
+current_user_search_role = azure_native.authorization.RoleAssignment(
+    "current-user-search-index-data-contributor",
+    principal_id=current.object_id,
+    principal_type=azure_native.authorization.PrincipalType.USER,
+    role_definition_id=f"/subscriptions/{current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/8ebe5a00-799e-43f5-93ac-243d3dce84a7",
+    scope=ai_search_service.id,
+)
+
+# Assign current user as Contributor on AI Search for full management permissions
+current_user_search_contributor_role = azure_native.authorization.RoleAssignment(
+    "current-user-search-contributor",
+    principal_id=current.object_id,
+    principal_type=azure_native.authorization.PrincipalType.USER,
+    role_definition_id=f"/subscriptions/{current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c",
+    scope=ai_search_service.id,
 )
 
 # Assign secret managers as Key Vault Secrets Officer
@@ -158,6 +192,30 @@ storage_connection_string_secret = azure_native.keyvault.Secret(
     opts=pulumi.ResourceOptions(depends_on=[current_user_kv_role]),
 )
 
+# Get AI Search admin key
+ai_search_admin_keys = pulumi.Output.all(
+    resource_group.name, ai_search_service.name
+).apply(
+    lambda args: azure_native.search.list_admin_key(
+        resource_group_name=args[0],
+        search_service_name=args[1]
+    )
+)
+
+ai_search_admin_key = ai_search_admin_keys.apply(lambda keys: keys.primary_key)
+
+# Store AI Search admin key in Key Vault
+ai_search_admin_key_secret = azure_native.keyvault.Secret(
+    "ai-search-admin-key",
+    resource_group_name=resource_group.name,
+    vault_name=key_vault.name,
+    secret_name="AzureSearch--AdminKey",
+    properties=azure_native.keyvault.SecretPropertiesArgs(
+        value=ai_search_admin_key,
+    ),
+    opts=pulumi.ResourceOptions(depends_on=[current_user_kv_role]),
+)
+
 # Export resource details
 pulumi.export("resource_group_name", resource_group.name)
 pulumi.export("storage_account_name", storage_account.name)
@@ -167,3 +225,5 @@ pulumi.export("storage_container_chunks_name", storage_container_chunks.name)
 pulumi.export("storage_container_embeddings_name", storage_container_embeddings.name)
 pulumi.export("key_vault_name", key_vault.name)
 pulumi.export("key_vault_uri", key_vault.properties.vault_uri)
+pulumi.export("ai_search_service_name", ai_search_service.name)
+pulumi.export("ai_search_service_id", ai_search_service.id)

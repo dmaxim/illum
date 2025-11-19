@@ -31,6 +31,24 @@ var embeddingApi = builder.AddExecutable(
     .WithHttpEndpoint(port: 8002, env: "PORT")
     .WithExternalHttpEndpoints();
 
+// Add Python FastAPI search data API
+var searchDataApi = builder.AddExecutable(
+        "search-data-api",
+        Path.GetFullPath("../../search-data-api/.venv/bin/python"),
+        "../../search-data-api",
+        "main.py")
+    .WithHttpEndpoint(port: 8003, env: "PORT")
+    .WithExternalHttpEndpoints();
+
+// Add Python FastAPI graph data API
+var graphDataApi = builder.AddExecutable(
+        "graph-data-api",
+        Path.GetFullPath("../../graph-data-api/.venv/bin/python"),
+        "../../graph-data-api",
+        "main.py")
+    .WithHttpEndpoint(port: 8004, env: "PORT")
+    .WithExternalHttpEndpoints();
+
 // Add Next.js knowledge loader
 var knowledgeLoader = builder.AddNpmApp("knowledge-loader", "../../knowledge-loader", "dev")
     .WithHttpEndpoint(port: 3000, env: "PORT")

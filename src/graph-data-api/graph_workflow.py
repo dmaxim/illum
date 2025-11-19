@@ -4,7 +4,8 @@ Routes documents based on doc_type (request vs response) and processes according
 """
 
 from typing import Dict, Any, TypedDict
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph
+from langgraph.constants import END
 import logging
 
 from models import GraphState, EmbeddedChunkData

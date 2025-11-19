@@ -26,6 +26,7 @@ class AzureSearchConfig:
     def __init__(self):
         self.endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
         self.index_name = os.getenv("AZURE_SEARCH_INDEX_NAME", "document-chunks")
+        self.key_vault_url = os.getenv("AZURE_KEY_VAULT_URL")
         
         # Parse group access list from comma-delimited environment variable
         group_access_env = os.getenv("GROUP_ACCESS_LIST", "")
@@ -35,5 +36,7 @@ class AzureSearchConfig:
         
         if not self.endpoint:
             raise ValueError("AZURE_SEARCH_ENDPOINT environment variable is required")
+        if not self.key_vault_url:
+            raise ValueError("AZURE_KEY_VAULT_URL environment variable is required")
         if not self.group_access_list:
             raise ValueError("GROUP_ACCESS_LIST environment variable is required and must contain at least one group")

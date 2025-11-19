@@ -14,6 +14,8 @@ from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
 from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
+from azure.core.credentials import AzureKeyCredential
+from azure.keyvault.secrets import SecretClient
 from azure.search.documents.indexes.models import (
     SearchIndex,
     SimpleField,
@@ -61,6 +63,40 @@ except ValueError as e:
     search_config = None
 
 
+def get_search_admin_key() -> str:
+    """
+    Retrieve the Azure AI Search admin key from Key Vault.
+    
+    Returns:
+        The admin key as a string
+        
+    Raises:
+        HTTPException: If key retrieval fails
+    """
+    if not search_config:
+        raise HTTPException(
+            status_code=500,
+            detail="Azure AI Search configuration is not properly set"
+        )
+    
+    try:
+        credential = DefaultAzureCredential()
+        secret_client = SecretClient(
+            vault_url=search_config.key_vault_url,
+            credential=credential
+        )
+        
+        secret = secret_client.get_secret("AzureSearch--AdminKey")
+        return secret.value
+        
+    except Exception as e:
+        logger.error(f"Error retrieving search admin key from Key Vault: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving search admin key: {str(e)}"
+        )
+
+
 def ensure_search_index_exists(index_name: str):
     """
     Ensure the Azure AI Search index exists with the correct schema.
@@ -76,8 +112,9 @@ def ensure_search_index_exists(index_name: str):
         )
     
     try:
-        # Create index client
-        credential = DefaultAzureCredential()
+        # Create index client with admin key for index management
+        admin_key = get_search_admin_key()
+        credential = AzureKeyCredential(admin_key)
         index_client = SearchIndexClient(
             endpoint=search_config.endpoint,
             credential=credential
@@ -248,8 +285,9 @@ def upload_chunks_to_search_index(chunks: List[EmbeddedChunkData], group_access_
     try:
         logger.info(f"Uploading {len(chunks)} chunks to search index")
         
-        # Create search client
-        credential = DefaultAzureCredential()
+        # Create search client with admin key
+        admin_key = get_search_admin_key()
+        credential = AzureKeyCredential(admin_key)
         search_client = SearchClient(
             endpoint=search_config.endpoint,
             index_name=index_name,
@@ -272,7 +310,7 @@ def upload_chunks_to_search_index(chunks: List[EmbeddedChunkData], group_access_
                 "chunk_index": chunk.chunk_index,
                 "content": chunk.content,
                 "vector": chunk.embedding,
-                "group_id": group_access_list
+                "group_id": group_access_list[0]
             }
             documents.append(document)
         
